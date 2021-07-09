@@ -1,12 +1,12 @@
 #!/bin/sh
 
 echo =====================================================
-echo LISTINGS ARE BEING RE-SCRAPED.  PLEASE WAIT...
+echo LISTINGS ARE BEING SCRAPED.  PLEASE WAIT...
 echo =====================================================
 
 cd scraper/crawler
 [ ! -d "oldData" ] && mkdir oldData
-mv amazon.json oldData/amazon_$(date +'%m-%d-%Y').json.bkup
+[ -f "amazon.json" ] && mv amazon.json oldData/amazon_$(date +'%m-%d-%Y').json.bkup
 
 #To avoid eating up space, clear up oldest backup after 5 have been made.
 if [ $(ls oldData | wc -l) -gt 5 ]
@@ -18,5 +18,5 @@ fi
 #scrapy crawl amazon -o amazon.json
 
 echo =====================================================
-echo LISTINGS HAVE BEEN RE-SCRAPED.  THANK YOU FOR WAITING
+echo LISTINGS HAVE BEEN SCRAPED.  THANK YOU FOR WAITING
 echo =====================================================
