@@ -48,7 +48,7 @@ Next, ensure that the bot has the following permissions and scopes:
 
 Finally, invite the bot into your server and run it with `python3 main.py`.
 
-Alternatively, you can utilize the provided `run.sh` script.  However, if you have not setup a virtual environment for the bot
+Alternatively, you can utilize the provided `run.sh` script.  However, if you have not setup a virtual environment for the bot then you can comment out the second last line: `. bot-env/bin/activate`
 
 ### Installing Only The Needed Cogs
 
