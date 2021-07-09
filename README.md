@@ -8,11 +8,15 @@ The result of an inside joke; a Discord bot which drops randomized product links
 
 First, clone the repository in your desired directory:
 
-> git clone [url]
+```
+git clone https://github.com/JetstreamAQ/Cubic-Zirconia.git
+```
 
 In order for the bot to run and function as intented, you need to install the required packages -- this can be done as follows:
 
-> pip install -r requirements.txt
+```
+pip install -r requirements.txt
+```
 
 If you do not want to install these packages globally, then it is recommended to create and run the bot under a virtual environment.  This can easily be done with the following commands:
 
@@ -50,7 +54,9 @@ Alternatively, you can utilize the provided `run.sh` script.  However, if you ha
 
 Clone the repository:
 
-> git clone [url]
+```
+git clone https://github.com/JetstreamAQ/Cubic-Zirconia.git
+```
 
 For reference, the following cogs refer to these bot functions:
 
