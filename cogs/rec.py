@@ -66,6 +66,7 @@ def new_server(settings, guildID):
         messageDict.get('maxMessage')[guildID] = 9
         messageDict.get('currentCount')[guildID] = 0
         messageDict.get('lastScrape')[guildID] = str(datetime.now())
+        messageDict.get('interject')[guildID] = True
 		
         write_file(settings)
 
@@ -101,6 +102,9 @@ class Recommend(commands.Cog):
                 },
                 'lastScrape': {
                     masterServer: str(datetime.now())
+                },
+                'interject': {
+                    masterServer: True
                 }
             })
             write_file(self.settings)
@@ -178,6 +182,20 @@ class Recommend(commands.Cog):
         await ctx.send("Here's a product you may enjoy: " + productURL)
 
     ########
+    # interjectDisable: DISABLE INTERJECTIONS
+    ########
+    @commands.command(name="interjectDisable", description="Disables bot interjections", aliases=['id'])
+    async def interject_disable(self, ctx):
+        stringID = str(ctx.message.guild.id)
+        interject = self.settings.get("recommend")[0]
+        new_server(self.settings, stringID)
+
+        interject.get('interject')[stringID] = False if interject.get('interject')[stringID] else True
+        write_file(self.settings)
+
+        await ctx.send("Interjections enabled." if interject.get("interject")[stringID] else "Interjections disabled.")
+
+    ########
     # ON LISTENER FOR MESSAGES
     ########
     @commands.Cog.listener()
@@ -202,7 +220,7 @@ class Recommend(commands.Cog):
         curCountMut = messageDict.get("currentCount")
         maxMessage = messageDict.get("maxMessage").get(guildID)
         
-        if maxMessage <= 0:
+        if maxMessage <= 0 or messageDict.get('interject').get(guildID):
             return
         elif currentCount >= maxMessage:
             print("[STATUS] Message count cap reached.  Making interjection.")
