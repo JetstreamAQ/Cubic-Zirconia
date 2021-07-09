@@ -56,7 +56,7 @@ For reference, the following cogs refer to these bot functions:
 
 > `rec.py` -> The scraping & recommendation system
 
-> 'stocks.py` -> the scuffed stock market simulator game
+> `stocks.py` -> the scuffed stock market simulator game
 
 Take the relevant files and place them in them where you normally put your bot's cogs.
 
