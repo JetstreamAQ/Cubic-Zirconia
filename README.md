@@ -1,6 +1,6 @@
 # Cubic Zirconia Δ
 
-The result of an inside joke; a Discord bot which drops randomized product links between a specified interval with the power of *Scrapy* and *Discord.py*.  Also an amalgamation of terribly executed ideas such as a per-server stock market.
+The result of an inside joke; a Discord bot which drops randomized product links between a specified interval with the power of *Scrapy* and *Discord.py*.  Also an amalgamation of terribly executed ideas such as a global stock market simulator.
 
 ## Installation
 
