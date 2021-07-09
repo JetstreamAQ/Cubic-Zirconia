@@ -201,8 +201,10 @@ class Recommend(commands.Cog):
         currentCount = messageDict.get("currentCount").get(guildID)
         curCountMut = messageDict.get("currentCount")
         maxMessage = messageDict.get("maxMessage").get(guildID)
-
-        if currentCount >= maxMessage:
+        
+        if maxMessage <= 0:
+            return
+        elif currentCount >= maxMessage:
             print("[STATUS] Message count cap reached.  Making interjection.")
             curCountMut[guildID] = 0
             words = re.findall(r'\b\w+\b', message.content)
