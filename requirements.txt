@@ -1,0 +1,5 @@
+discord
+discord-py-slash-command
+python-dotenv
+scrapy
+scrapy-user-agents
