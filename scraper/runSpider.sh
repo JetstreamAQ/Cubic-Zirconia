@@ -15,7 +15,7 @@ then
 	rm $oldestFile
 fi
 
-#scrapy crawl amazon -o amazon.json
+scrapy crawl amazon -o amazon.json
 
 echo =====================================================
 echo LISTINGS HAVE BEEN SCRAPED.  THANK YOU FOR WAITING
