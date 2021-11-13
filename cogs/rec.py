@@ -60,12 +60,13 @@ async def check_owner(ctx):
 # Appending new server data
 ######
 def new_server(settings, guildID):
-    messageDict = settings.get('recommend')[0]
+    messageDict = settings.get('recommend')
     if guildID not in messageDict.get('currentCount'):
         print("[DEBUG]: New Server.  Adding entries to JSON.")
         messageDict.get('maxMessage')[guildID] = 9
         messageDict.get('currentCount')[guildID] = 0
         messageDict.get('lastScrape')[guildID] = str(datetime.now())
+        messageDict.get('interject')[guildID] = True
 		
         write_file(settings)
 
@@ -83,26 +84,29 @@ class Recommend(commands.Cog):
         self.bot = bot
 
         #loading server settings from JSON
-        self.settings = []
+        self.settings = {}
         if os.path.isfile('recSettings.json') and os.access('recSettings.json', os.R_OK):
             with open('recSettings.json') as file:
                 self.settings = (json.load(file))
         else:
             print("[INFO]: JSON file missing or unreadable.  Creating new JSON.")
             masterServer = os.getenv('MASTER_SERVER_ID')
-            self.settings = {}
-            self.settings['recommend'] = []
-            self.settings['recommend'].append({
-                'maxMessage': {
-                    masterServer: 24
-                },
-                'currentCount': {
-                    masterServer: 0
-                },
-                'lastScrape': {
-                    masterServer: str(datetime.now())
+            self.settings ={
+                'recommend': {
+                    'maxMessage': {
+                        masterServer: 24
+                    },
+                    'currentCount': {
+                        masterServer: 0
+                    },
+                    'lastScrape': {
+                        masterServer: str(datetime.now())
+                    },
+                    'interject': {
+                        masterServer: True
+                    }
                 }
-            })
+            }
             write_file(self.settings)
 
         #self.auto_crawl.start() #initiate auto_crawl background task
@@ -116,13 +120,13 @@ class Recommend(commands.Cog):
     async def auto_crawl(self):
         #Check elapsed time from last scrape in master server
         masterServer = os.getenv('MASTER_SERVER_ID')
-        oldTime = self.settings.get("recommend")[0].get("lastScrape").get(masterServer)
+        oldTime = self.settings.get("recommend").get("lastScrape").get(masterServer)
         oldStrp = datetime.strptime(oldTime, "%Y-%m-%d %H:%M:%S.%f")
         timeDelta = (datetime.now() - oldStrp).days
         if (timeDelta < 30): #30 days
             return
 
-        self.settings.get("recommend")[0].get("lastScrape")[masterServer] = str(datetime.now())
+        self.settings.get("recommend").get("lastScrape")[masterServer] = str(datetime.now())
         write_file(self.settings)
         print("[SYSTEM] Month since last scrape.  Initiating Re-Scrape.")
         os.system('scraper/runSpider.sh')
@@ -135,7 +139,7 @@ class Recommend(commands.Cog):
         if await check_owner(ctx) == 1:
             return
 
-        self.settings.get("recommend")[0].get("lastScrape")[str(ctx.message.guild.id)] = str(datetime.now())
+        self.settings.get("recommend").get("lastScrape")[str(ctx.message.guild.id)] = str(datetime.now())
         write_file(self.settings)
         print("[SYSTEM] Web Crawl forcefully initiated.")
         os.system('scraper/runSpider.sh')
@@ -149,7 +153,7 @@ class Recommend(commands.Cog):
 
         try:
             if isinstance(int(num), int):
-                self.settings.get("recommend")[0].get("maxMessage")[str(ctx.message.guild.id)] = abs(int(num)) - 1
+                self.settings.get("recommend").get("maxMessage")[str(ctx.message.guild.id)] = abs(int(num)) - 1
                 write_file(self.settings)
 
                 print("[UPDATE] Interjection Interval has been changed >> " + '{}'.format(abs(int(num))))
@@ -178,6 +182,20 @@ class Recommend(commands.Cog):
         await ctx.send("Here's a product you may enjoy: " + productURL)
 
     ########
+    # interjectToggle: DISABLE INTERJECTIONS
+    ########
+    @commands.command(name="interjectToggle", description="Disables bot interjections", aliases=['id'])
+    async def interject_toggle(self, ctx):
+        stringID = str(ctx.message.guild.id)
+        interject = self.settings.get("recommend")
+        new_server(self.settings, stringID)
+
+        interject.get('interject')[stringID] = False if interject.get('interject')[stringID] else True
+        write_file(self.settings)
+
+        await ctx.send("Interjections enabled." if interject.get("interject")[stringID] else "Interjections disabled.")
+
+    ########
     # ON LISTENER FOR MESSAGES
     ########
     @commands.Cog.listener()
@@ -185,7 +203,7 @@ class Recommend(commands.Cog):
         if message.author == self.bot.user:
             return
 
-        messageDict = self.settings.get("recommend")[0]
+        messageDict = self.settings.get("recommend")
         guildID = str(message.guild.id)
 
         new_server(self.settings, guildID)
@@ -201,8 +219,10 @@ class Recommend(commands.Cog):
         currentCount = messageDict.get("currentCount").get(guildID)
         curCountMut = messageDict.get("currentCount")
         maxMessage = messageDict.get("maxMessage").get(guildID)
-
-        if currentCount >= maxMessage:
+        
+        if maxMessage <= 0 or messageDict.get('interject').get(guildID):
+            return
+        elif currentCount >= maxMessage:
             print("[STATUS] Message count cap reached.  Making interjection.")
             curCountMut[guildID] = 0
             words = re.findall(r'\b\w+\b', message.content)
