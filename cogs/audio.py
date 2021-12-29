@@ -6,9 +6,10 @@ import yt_dlp
 import asyncio
 
 from discord.ext import commands, tasks
-from discord import Embed, FFmpegPCMAudio, PCMVolumeTransformer
+from discord import Embed
 from yt_dlp import YoutubeDL
-from queue import Queue
+from queue import PriorityQueue
+from collections import deque
 
 FFMPEG_OPTIONS = {'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5','options': '-vn'}
 YTDL_OPTIONS = {'extractaudio': True, 'format': 'bestaudio'}
@@ -25,18 +26,20 @@ class Audio(commands.Cog):
     @tasks.loop(minutes=10.0)
     async def check_channels(self):
         for ids in self.activeServers:
-            await self.empty_channel(self.bot.get_guild(ids).voice_client, self.bot.get_guild(ids).voice_client.channel.members)
+            await self.empty_channel(self.bot.get_guild(ids).voice_client, self.bot.get_guild(ids).voice_client.channel.members, ids)
 
-    async def empty_channel(self, vc, channelMembers):
+    async def empty_channel(self, vc, channelMembers, ids):
         if len(channelMembers) < 1:
-            asyncio.sleep(120)
+            await asyncio.sleep(120)
             if len(channelMembers) < 1:
                 await vc.disconnect()
+                self.activeServers.remove(ids)
 
-        if not self.voice_client.is_playing():
-            asyncio.sleep(120)
-            if not self.voice_client.is_playing():
+        if not vc.is_playing():
+            await asyncio.sleep(120)
+            if not vc.is_playing():
                 await vc.disconnect()
+                self.activeServers.remove(ids)
 
     async def add_to_queue(self, guildID, search):
         search = search.replace(" ", "+")
@@ -46,8 +49,8 @@ class Audio(commands.Cog):
         video = "https://www.youtube.com/watch?v=" + video_ids[0]
 
         if guildID not in self.queue:
-            self.queue[guildID] = Queue(maxsize = 0)
-        self.queue.get(guildID).put(video)
+            self.queue[guildID] = deque()
+        self.queue.get(guildID).append(video)
 
     async def vc_play(self, ctx, link, vc):
         with yt_dlp.YoutubeDL(YTDL_OPTIONS) as ytdlp:
@@ -59,11 +62,11 @@ class Audio(commands.Cog):
     async def play_next(self, ctx):
         vc = discord.utils.get(self.bot.voice_clients, guild = ctx.guild)
 
-        if self.queue.get(ctx.message.guild.id).qsize() >= 1:
+        if len(self.queue.get(ctx.message.guild.id)) >= 1:
             if vc.is_playing():
                 vc.stop()
 
-            link = self.queue.get(ctx.message.guild.id).get()
+            link = self.queue.get(ctx.message.guild.id).popleft()
             await self.vc_play(ctx, link, vc)
         
 
@@ -83,7 +86,7 @@ class Audio(commands.Cog):
         #Join the VC of the command issuer
         if vc is None:
             vc = await voice.connect()
-        else:
+        elif not vc.is_playing():
             await ctx.send("I'm already playing something.")
             return
             #await vc.move_to(channel)
@@ -91,7 +94,7 @@ class Audio(commands.Cog):
         link = ""
         if not self.queue.get(ctx.message.guild.id):
             await self.add_to_queue(ctx.message.guild.id, search)
-        link = self.queue.get(ctx.message.guild.id).get()
+        link = self.queue.get(ctx.message.guild.id).popleft()
 
         await ctx.send("Now playing: " + link)            
         await self.vc_play(ctx, link, vc)
@@ -103,7 +106,41 @@ class Audio(commands.Cog):
     async def queue(self, ctx, search):
         await self.add_to_queue(ctx.message.guild.id, search)
         videoQueue = self.queue.get(ctx.message.guild.id)
-        await ctx.send("Queued: " + videoQueue.queue[videoQueue.qsize() - 1])
+        await ctx.send("Queued: " + videoQueue[len(videoQueue) - 1])
+
+    @commands.command(name="viewQueue", description="View the video queue", aliases=['vq', 'VQ'])
+    async def view_queue(self, ctx):
+        queueString = ""
+        if self.queue.get(ctx.message.guild.id) is None or len(self.queue.get(ctx.message.guild.id)) == 0:
+            await ctx.send("Nothing queued at the moment.")
+            return
+
+        await ctx.send("Please wait, I'm fetching the information now...")
+
+        for i, video in enumerate(self.queue.get(ctx.message.guild.id)):
+            with yt_dlp.YoutubeDL(YTDL_OPTIONS) as ytdlp:
+                info = ytdlp.extract_info(video, download = False)
+                title = info.get('title', None)
+                queueString += "[" + str(i) + "] " + title + "\n"
+
+        p_embed = discord.Embed(title = "Video Queue", description = queueString, color = 0x00ff00)
+        await ctx.channel.send(embed=p_embed)
+
+    @commands.command(name="remove", description="Remove a video from the queue by index")
+    async def remove(self, ctx, index):
+        try:
+            int(index)
+        except ValueError:
+            await ctx.send("Provided index is not an integer.")
+            return
+
+        if int(index) >= len(self.queue.get(ctx.message.guild.id)) or int(index) < 0:
+            await ctx.send("Invalid index provided")
+            return
+
+        del self.queue.get(ctx.message.guild.id)[int(index)]
+        await ctx.send("Specified video has been removed from the queue.")
+        
 
     @commands.command(name="next", description="Skip to the next video in the queue")
     async def next(self, ctx):
@@ -118,7 +155,7 @@ class Audio(commands.Cog):
     async def pause(self, ctx):
         vc = discord.utils.get(self.bot.voice_clients, guild = ctx.guild)
 
-        if not vc.is_playing() or vc is None:
+        if vc.is_playing() or vc is None:
             await ctx.send("Pausing...")
             vc.pause()
         else:
