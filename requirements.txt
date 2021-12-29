@@ -3,6 +3,5 @@ discord-py-slash-command
 python-dotenv
 scrapy
 scrapy-user-agents
-pafy
-youtube-dl
+yt-dlp
 PyNaCl

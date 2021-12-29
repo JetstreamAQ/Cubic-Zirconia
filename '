@@ -56,15 +56,15 @@ class Audio(commands.Cog):
             source = await discord.FFmpegOpusAudio.from_probe(url, **FFMPEG_OPTIONS)
             vc.play(source, after = lambda e: asyncio.run(self.play_next(ctx)))
 
+
     async def play_next(self, ctx):
         vc = discord.utils.get(self.bot.voice_clients, guild = ctx.guild)
 
-        if self.queue.get(ctx.message.guild.id).qsize() >= 1:
-            if vc.is_playing():
-                vc.stop()
+        if vc.is_playing():
+            vc.stop()
 
-            link = self.queue.get(ctx.message.guild.id).get()
-            await self.vc_play(ctx, link, vc)
+        link = self.queue.get(ctx.message.guild.id).get()
+        await self.vc_play(ctx, link, vc)
         
 
     @commands.command(name="play", description="Join current VC and play first result from youtube")
@@ -84,9 +84,7 @@ class Audio(commands.Cog):
         if vc is None:
             vc = await voice.connect()
         else:
-            await ctx.send("I'm already playing something.")
-            return
-            #await vc.move_to(channel)
+            await vc.move_to(channel)
 
         link = ""
         if not self.queue.get(ctx.message.guild.id):
@@ -94,6 +92,14 @@ class Audio(commands.Cog):
         link = self.queue.get(ctx.message.guild.id).get()
 
         await ctx.send("Now playing: " + link)            
+
+        """
+        with yt_dlp.YoutubeDL(YTDL_OPTIONS) as ytdlp:
+            info = ytdlp.extract_info(link, download = False)
+            url = info['formats'][3]['url']
+            source = await discord.FFmpegOpusAudio.from_probe(url, **FFMPEG_OPTIONS)
+            vc.play(source)
+        """
         await self.vc_play(ctx, link, vc)
 
         if (ctx.message.guild.id not in self.activeServers):
@@ -108,31 +114,13 @@ class Audio(commands.Cog):
     @commands.command(name="next", description="Skip to the next video in the queue")
     async def next(self, ctx):
         vc = discord.utils.get(self.bot.voice_clients, guild = ctx.guild)
-        if not vc.is_playing() or vc is None:
+        if vc is None:
             await ctx.send("I'm not playing anything right now.")
             return
 
-        await self.play_next(ctx)
+        if self.queue.get(ctx.message.guild.id).qsize() >= 1:
+            await ctx.send("Playing the next video...")
 
-    @commands.command(name="stop", description="Pause the current video")
-    async def pause(self, ctx):
-        vc = discord.utils.get(self.bot.voice_clients, guild = ctx.guild)
-
-        if not vc.is_playing() or vc is None:
-            await ctx.send("Pausing...")
-            vc.pause()
-        else:
-            await ctx.send("I'm not playing anything right now.")
-
-    @commands.command(name="resume", description="Resume the paused video")
-    async def resume(self, ctx):
-        vc = discord.utils.get(self.bot.voice_clients, guild = ctx.guild)
-
-        if not vc.is_playing() or vc is None:
-            await ctx.send("Resuming...")
-            vc.resume()
-        else:
-            await ctx.send("I'm not playing anything right now.")
 
 def setup(bot):
     bot.add_cog(Audio(bot))
