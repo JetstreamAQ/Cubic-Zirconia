@@ -8,7 +8,6 @@ import asyncio
 from discord.ext import commands, tasks
 from discord import Embed
 from yt_dlp import YoutubeDL
-from queue import PriorityQueue
 from collections import deque
 
 FFMPEG_OPTIONS = {'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5','options': '-vn'}
