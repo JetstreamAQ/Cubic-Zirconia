@@ -13,6 +13,8 @@ class Audio(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.activeServers = [];
+
+        self.check_channels.start()
         print("[DEBUG] Audio Cog loaded")
 
     @tasks.loop(minutes=10.0)
