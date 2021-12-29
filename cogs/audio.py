@@ -12,7 +12,8 @@ FFMPEG_OPTIONS = {'before_options': '-reconnect 1 -reconnect_streamed 1 -reconne
 class Audio(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        self.activeServers = [];
+        self.activeServers = []
+        self.queue = {}
 
         self.check_channels.start()
         print("[DEBUG] Audio Cog loaded")
@@ -20,13 +21,18 @@ class Audio(commands.Cog):
     @tasks.loop(minutes=10.0)
     async def check_channels(self):
         for ids in self.activeServers:
-            await empty_channel(self.bot.get_guild(id).voice_client, self.bot.get_guild(ids).voice_client.channel.members)
+            await empty_channel(self.bot.get_guild(ids).voice_client, self.bot.get_guild(ids).voice_client.channel.members)
 
     async def empty_channel(vc, channelMembers):
         if len(channelMembers) < 1:
             asyncio.sleep(120)
             if len(channelMembers) < 1:
                 await vc.disconnect()
+
+    #@commands.command(name="queue", description="Add a video to the queue")
+    #async def queue(self, ctx, search):
+        #if ctx.message.guild.id not in self.queue
+            #queue.append
 
     @commands.command(name="play", description="Join current VC and play first result from youtube")
     async def play(self, ctx, search):
