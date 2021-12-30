@@ -144,17 +144,28 @@ class Audio(commands.Cog):
     @commands.command(name="next", description="Skip to the next video in the queue")
     async def next(self, ctx):
         vc = discord.utils.get(self.bot.voice_clients, guild = ctx.guild)
-        if not vc.is_playing() or vc is None:
+        if not vc.is_playing() or vc is not None:
             await ctx.send("I'm not playing anything right now.")
             return
 
         await self.play_next(ctx)
 
-    @commands.command(name="stop", description="Pause the current video")
+    @commands.command(name="stop", description="Stop playing")
+    async def stop(self, ctx):
+        vc = discord.utils.get(self.bot.voice_clients, guild = ctx.guild)
+
+        if vc.is_playing() or vc is not None:
+            await ctx.send("Stopping...")
+            vc.stop()
+        else:
+            await ctx.send("I'm not playing anything right now.")
+
+
+    @commands.command(name="pause", description="Pause the current video")
     async def pause(self, ctx):
         vc = discord.utils.get(self.bot.voice_clients, guild = ctx.guild)
 
-        if vc.is_playing() or vc is None:
+        if vc.is_playing() or vc is not None:
             await ctx.send("Pausing...")
             vc.pause()
         else:
@@ -164,7 +175,7 @@ class Audio(commands.Cog):
     async def resume(self, ctx):
         vc = discord.utils.get(self.bot.voice_clients, guild = ctx.guild)
 
-        if not vc.is_playing() or vc is None:
+        if not vc.is_playing() or vc is not None:
             await ctx.send("Resuming...")
             vc.resume()
         else:
