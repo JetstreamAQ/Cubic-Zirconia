@@ -75,8 +75,10 @@ Please ensure that the following dependencies are installed for the given cogs.
 > 	- discord-py-slash-command
 >	- scrapy
 >	- scrapy-user-agents
+
 > **stocks.py**
 >	- You don't need anything extra.
+
 > **audio.py**
 >	- yt-dlp
 >	- PyNaCl
