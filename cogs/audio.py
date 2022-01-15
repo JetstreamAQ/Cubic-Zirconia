@@ -41,11 +41,17 @@ class Audio(commands.Cog):
                 self.activeServers.remove(ids)
 
     async def add_to_queue(self, guildID, search):
-        search = search.replace(" ", "+")
-        html = urllib.request.urlopen("https://www.youtube.com/results?search_query=" + search)
-        video_ids = re.findall(r"watch\?v=(\S{11})", html.read().decode())
+        regex = re.search("^https://www[.]youtube[.]com/watch[?]v=[a-zA-Z0-9_-]{11}$", search)
+        
+        video = ""
+        if regex:
+            video = search
+        else:
+            search = search.replace(" ", "+")
+            html = urllib.request.urlopen("https://www.youtube.com/results?search_query=" + search)
+            video_ids = re.findall(r"watch\?v=(\S{11})", html.read().decode())
 
-        video = "https://www.youtube.com/watch?v=" + video_ids[0]
+            video = "https://www.youtube.com/watch?v=" + video_ids[0]
 
         if guildID not in self.queue:
             self.queue[guildID] = deque()
@@ -85,7 +91,7 @@ class Audio(commands.Cog):
         #Join the VC of the command issuer
         if vc is None:
             vc = await voice.connect()
-        elif not vc.is_playing():
+        elif vc.is_playing():
             await ctx.send("I'm already playing something.")
             return
             #await vc.move_to(channel)
@@ -144,7 +150,7 @@ class Audio(commands.Cog):
     @commands.command(name="next", description="Skip to the next video in the queue")
     async def next(self, ctx):
         vc = discord.utils.get(self.bot.voice_clients, guild = ctx.guild)
-        if not vc.is_playing() or vc is not None:
+        if not vc.is_playing() or vc is None:
             await ctx.send("I'm not playing anything right now.")
             return
 
