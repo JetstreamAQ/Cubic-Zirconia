@@ -70,6 +70,17 @@ If you are making use of `rec.py`, then take the entire `scraper` directory and 
 
 Finally, you can either reload your bot's cogs or simply reboot your entire bot -- whichever way you have setup or prefer.  Afterwards, you should now be able to use the relevant functionalities of this bot within your own.
 
+Please ensure that the following dependencies are installed for the given cogs.
+> **rec.py**
+> 	- discord-py-slash-command
+>	- scrapy
+>	- scrapy-user-agents
+> **stocks.py**
+>	- You don't need anything extra.
+> **audio.py**
+>	- yt-dlp
+>	- PyNaCl
+
 ## Usage
 You can view all available commands with `+help`
 
@@ -107,6 +118,41 @@ Sell `num` stocks of `name`
 > +stockPrice
 
 Get the prices of currently available listings
+
+### audio.py
+Once the cog is loaded, everything should work given the correct dependencies are also installed.
+
+> +play [Search terms OR URL]
+
+Plays the searched/specified video if there is not one playing.  The command can be run without parameters to play the first video in the queue.
+
+> +queue [Search terms OR URL]
+
+Queues the searched/specified video.
+
+> +viewQueue
+
+View the video queue.  Takes a while since the bot retrieves the video titles from their respective URLs instead of storing them.
+
+> +remove [index]
+
+Remove a video from the queue by specifying the relevant index.  Video indexes can be found from using `+viewQueue`
+
+> +next
+
+Skip to the next video in the queue if there is anything.  Doesn't do anything if the bot is currently not playing anything.
+
+> +stop
+
+Stops playing the current video.
+
+> +pause
+
+Pauses the current video, allowing it to be resumed.
+
+> +resume
+
+Resumes the paused video.
 
 ## License
 
