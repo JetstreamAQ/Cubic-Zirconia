@@ -16,7 +16,7 @@ YTDL_OPTIONS = {'extractaudio': True, 'format': 'bestaudio'}
 class Audio(commands.Cog):
 	def __init__(self, bot):
 		self.bot = bot
-		self.activeServers = []
+		self.activeServers = {} #Going to include the loop flag here
 		self.queue = {}
 
 		self.check_channels.start()
@@ -32,13 +32,14 @@ class Audio(commands.Cog):
 			await asyncio.sleep(120)
 			if len(channelMembers) < 1:
 				await vc.disconnect()
-				self.activeServers.remove(ids)
+				#self.activeServers.remove(ids)
+				self.activeServers.pop(ids)
 
 		if not vc.is_playing():
 			await asyncio.sleep(120)
 			if not vc.is_playing():
 				await vc.disconnect()
-				self.activeServers.remove(ids)
+				self.activeServers.pop(ids)
 
 	async def add_to_queue(self, guildID, search):
 		regex = re.search("^https://www[.]youtube[.]com/watch[?]v=[a-zA-Z0-9_-]{11}$", search)
@@ -58,6 +59,9 @@ class Audio(commands.Cog):
 		self.queue.get(guildID).append(video)
 
 	async def vc_play(self, ctx, link, vc):
+		if self.activeServers.get(ctx.message.guild.id):
+			await self.add_to_queue(ctx.message.guild.id, link)
+
 		with yt_dlp.YoutubeDL(YTDL_OPTIONS) as ytdlp:
 			info = ytdlp.extract_info(link, download = False)
 			url = info['formats'][3]['url']
@@ -76,7 +80,6 @@ class Audio(commands.Cog):
 		else:
 			vc.stop()
 			return
-		
 
 	@commands.command(name="play", description="Join current VC and play first result from youtube")
 	async def play(self, ctx, search = ""):
@@ -95,9 +98,9 @@ class Audio(commands.Cog):
 		if vc is None:
 			vc = await voice.connect()
 		elif vc.is_playing():
-			await ctx.send("I'm already playing something.")
+			await self.add_to_queue(ctx.message.guild.id, search)
+			await ctx.send("I'm already playing something.  Going to queue it instead...")
 			return
-			#await vc.move_to(channel)
 
 		link = ""
 		if not self.queue.get(ctx.message.guild.id):
@@ -108,7 +111,7 @@ class Audio(commands.Cog):
 		await self.vc_play(ctx, link, vc)
 
 		if (ctx.message.guild.id not in self.activeServers):
-			self.activeServers.append(ctx.message.guild.id)
+			self.activeServers[ctx.message.guild.id] = False
 
 	@commands.command(name="queue", description="Add a video to the queue")
 	async def queue(self, ctx, search):
@@ -189,6 +192,13 @@ class Audio(commands.Cog):
 			vc.resume()
 		else:
 			await ctx.send("I'm not playing anything right now.")
+
+	@commands.command(name="loop", description="Loops the queue; current video is requeued.")
+	async def loop(self, ctx):
+		testActive = ctx.message.guild.id not in self.activeServers
+		self.activeServers[ctx.message.guild.id] = True if testActive else (not self.activeServers.get(ctx.message.guild.id))
+		await ctx.send("Loop Enabled." if self.activeServers.get(ctx.message.guild.id) else "Loop Disabled")
+		
 
 def setup(bot):
 	bot.add_cog(Audio(bot))
