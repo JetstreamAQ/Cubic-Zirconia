@@ -298,7 +298,7 @@ class Stocks(commands.Cog):
 	# portfolio: Grab the portfolio of the requester
 	########
 	@commands.command(name="portfolio", description="Request your investment portfolio", aliases=['p', 'P'])
-	async def get_portfolio(self, ctx, interaction: Interaction):
+	async def get_portfolio(self, ctx):
 		self.db_check(ctx)
 
 		infoString = ""
