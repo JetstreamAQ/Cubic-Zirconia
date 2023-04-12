@@ -11,8 +11,9 @@ First, clone the repository in your desired directory:
 ```
 git clone https://github.com/JetstreamAQ/Cubic-Zirconia.git
 ```
+> NB: As of Wednesday, April 12, 2023 you can skip over the installation of requirements as long as you have `pip` installed.  This can be done by simply starting up the bot with the provided `run.sh` script after following the rest of the steps proceeding the installation of requirements.
 
-In order for the bot to run and function as intented, you need to install the required packages -- this can be done as follows:
+In order for the bot to run and function as intented, you need to install the required packages---this can be done as follows:
 
 ```
 pip install -r requirements.txt
@@ -68,7 +69,7 @@ Take the relevant files and place them in them where you normally put your bot's
 
 If you are making use of `rec.py`, then take the entire `scraper` directory and place it in your bot's root directory.  Afterwards, you will need to initalize a `.env` file if you have not done so yet.  In it place `HOME_SERVER_ID` and `OWNER_ID` variables with their respective values.
 
-Finally, you can either reload your bot's cogs or simply reboot your entire bot -- whichever way you have setup or prefer.  Afterwards, you should now be able to use the relevant functionalities of this bot within your own.
+Finally, you can either reload your bot's cogs or simply reboot your entire bot---whichever way you have setup or prefer.  Afterwards, you should now be able to use the relevant functionalities of this bot within your own.
 
 Please ensure that the following dependencies are installed for the given cogs.
 > **rec.py**
