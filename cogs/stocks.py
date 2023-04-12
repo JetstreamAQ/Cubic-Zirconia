@@ -3,7 +3,9 @@ import json
 import random
 import discord
 
+from core.pagination import PaginatedView
 from discord.ext import commands, tasks
+from discord.interactions import Interaction
 from discord import Embed
 from datetime import datetime 
 
@@ -296,7 +298,7 @@ class Stocks(commands.Cog):
 	# portfolio: Grab the portfolio of the requester
 	########
 	@commands.command(name="portfolio", description="Request your investment portfolio", aliases=['p', 'P'])
-	async def get_portfolio(self, ctx):
+	async def get_portfolio(self, ctx, interaction: Interaction):
 		self.db_check(ctx)
 
 		infoString = ""
@@ -357,13 +359,18 @@ class Stocks(commands.Cog):
 
 		#embed for commodities
 		c_embed = discord.Embed(title="Commodities (Price per unit)", description=c_listings, color=0xff0000)
+		c_embed.set_image(url="https://media.tenor.com/AbkJkB1pGr8AAAAi/hutao-money-rain.gif")
 
 		#embed for stocks
 		s_embed = discord.Embed(title="Stocks (Price per share)", description=s_listings, color=0x0000ff)
 		s_embed.set_image(url="https://media.tenor.com/images/d8ac4e749942f31ddfb928dee86244d3/tenor.gif")
 
-		await ctx.channel.send(embed=c_embed)
-		await ctx.channel.send(embed=s_embed)
+		#await ctx.channel.send(embed=c_embed)
+		#await ctx.channel.send(embed=s_embed)
+		embeds = [c_embed, s_embed]
+		view = PaginatedView(embeds)
+		view.message = await ctx.channel.send(embed=view.initial, view=view)
+		#view.message = await interaction.original_response()
 
 	########
 	# stockRequests: Fetch the list of requests for this quarter
