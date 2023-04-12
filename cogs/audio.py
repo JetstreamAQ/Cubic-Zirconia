@@ -200,5 +200,5 @@ class Audio(commands.Cog):
 		await ctx.send("Loop Enabled." if self.activeServers.get(ctx.message.guild.id) else "Loop Disabled")
 		
 
-def setup(bot):
-	bot.add_cog(Audio(bot))
+async def setup(bot):
+	await bot.add_cog(Audio(bot))

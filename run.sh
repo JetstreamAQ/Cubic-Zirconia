@@ -15,7 +15,7 @@ pip3 install --upgrade pip
 
 echo =======================================
 
-pip3 install --upgrade yt-dlp
+pip3 install --upgrade -r requirements.txt
 
 echo =======================================
 echo Update/Check Complete...

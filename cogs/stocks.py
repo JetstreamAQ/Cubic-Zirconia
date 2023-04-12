@@ -79,6 +79,9 @@ class Stocks(commands.Cog):
 		#Time check
 		oldTime = self.settings.get("lastCheck")
 		oldStrp = datetime.strptime(oldTime, "%Y-%m-%d %H:%M:%S.%f")
+		# Doing it this way to get somewhat more exact 30 minute intervals
+		# Side-effect of doing it this way is more noticable for a tasks.loop.minutes value > 1 that get closer to 30
+		# Essentially allows for that value to be easily increased if 1 minute intervals are too frequent
 		timeDelta = (datetime.now() - oldStrp).seconds / 3600
 		if (timeDelta < 0.5):
 			return
@@ -323,7 +326,7 @@ class Stocks(commands.Cog):
 				infoString += (strings.get(key) + '${:,.2f}'.format(portfolioData.get(key)))
 
 		p_embed = discord.Embed(title="Investment Portfolio", description=infoString, color = 0x00ff00)
-		p_embed.set_author(name=ctx.author.name, url=Embed.Empty, icon_url=ctx.author.avatar_url)
+		p_embed.set_author(name=ctx.author.display_name, url="", icon_url=ctx.author.display_avatar)
 		await ctx.channel.send(embed=p_embed)
 
 	########
@@ -377,5 +380,5 @@ class Stocks(commands.Cog):
 		print(chosenCompanies)
 		print(commodityList)
 
-def setup(bot):
-	bot.add_cog(Stocks(bot))
+async def setup(bot):
+	await bot.add_cog(Stocks(bot))

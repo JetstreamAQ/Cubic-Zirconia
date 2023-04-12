@@ -5,7 +5,7 @@ import re
 
 from datetime import datetime
 from discord.ext import commands, tasks
-from discord_slash import cog_ext, SlashContext
+#from discord_slash import cog_ext, SlashContext
 
 ########
 # PICKING A RANDOM PRODUCT FROM THE SCRAPED LIST!
@@ -176,10 +176,12 @@ class Recommend(commands.Cog):
 		productURL = item_pick()
 		await ctx.send("Here's a product you may enjoy: " + productURL)
 
+	"""
 	@cog_ext.cog_slash(name="recommend", description="Get a random recommendation.")
 	async def item_recommend(self, ctx: SlashContext):
 		productURL = item_pick()
 		await ctx.send("Here's a product you may enjoy: " + productURL)
+	"""
 
 	########
 	# interjectToggle: DISABLE INTERJECTIONS
@@ -247,5 +249,5 @@ class Recommend(commands.Cog):
 			curCountMut[guildID] += 1
 			write_file(self.settings)
 
-def setup(bot):
-	bot.add_cog(Recommend(bot))
+async def setup(bot):
+	await bot.add_cog(Recommend(bot))
