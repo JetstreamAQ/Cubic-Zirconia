@@ -32,7 +32,6 @@ class Audio(commands.Cog):
 			await asyncio.sleep(120)
 			if len(channelMembers) < 1:
 				await vc.disconnect()
-				#self.activeServers.remove(ids)
 				self.activeServers.pop(ids)
 
 		if not vc.is_playing():
@@ -42,20 +41,30 @@ class Audio(commands.Cog):
 				self.activeServers.pop(ids)
 
 	async def add_to_queue(self, guildID, search):
-		regex = re.search("^https://www[.]youtube[.]com/watch[?]v=[a-zA-Z0-9_-]{11}$", search)
-		
+		vid_regex = re.search("^https://www[.]youtube[.]com/watch[?]v=[a-zA-Z0-9_-]{11}$", search)
+		list_regex = re.search("^https://www[.]youtube[.]com/playlist[?]list=[a-zA-Z0-9_-]+$", search)
+
+		# add GuildID into self.queue if dne
+		if guildID not in self.queue:
+			self.queue[guildID] = deque()
+
+		# playlist queueing
+		if list_regex:
+			html = urllib.request.urlopen(search)
+			video_ids = re.findall(r"watch\?v=(\S{11})", html.read().decode())
+			video_urls = ["https://www.youtube.com/watch?v=" + vid_id for vid_id in video_ids]
+			self.queue.get(guildID).extend(video_urls)
+			return
+
 		video = ""
-		if regex:
+		if vid_regex:
 			video = search
 		else:
 			search = search.replace(" ", "+")
 			html = urllib.request.urlopen("https://www.youtube.com/results?search_query=" + search)
 			video_ids = re.findall(r"watch\?v=(\S{11})", html.read().decode())
-
 			video = "https://www.youtube.com/watch?v=" + video_ids[0]
 
-		if guildID not in self.queue:
-			self.queue[guildID] = deque()
 		self.queue.get(guildID).append(video)
 
 	async def vc_play(self, ctx, link, vc):
