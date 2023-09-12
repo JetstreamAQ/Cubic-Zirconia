@@ -71,7 +71,7 @@ class Audio(commands.Cog):
 	async def play_next(self, ctx):
 		vc = discord.utils.get(self.bot.voice_clients, guild = ctx.guild)
 
-		if len(self.queue.get(ctx.message.guild.id)) >= 1:
+		if len(self.queue.get(ctx.message.guild.id)) > 1:
 			if vc.is_playing():
 				vc.stop()
 
