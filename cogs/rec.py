@@ -1,11 +1,12 @@
+import discord
 import os
 import json
 import random
 import re
 
 from datetime import datetime
+from discord import app_commands
 from discord.ext import commands, tasks
-#from discord_slash import cog_ext, SlashContext
 
 ########
 # PICKING A RANDOM PRODUCT FROM THE SCRAPED LIST!
@@ -169,19 +170,17 @@ class Recommend(commands.Cog):
 	########
 	# recommend: GENERATE A RECOMMENDATION
 	########
-	@commands.command(name="recommend", description="Get a random recommendation.", aliases=['rec', 'r'])
+	@commands.hybrid_command(name="recommend", description="Get a random recommendation.", aliases=['rec', 'r'])
 	async def item_recommend_c(self, ctx):
 		new_server(self.settings, str(ctx.message.guild.id))		
 
 		productURL = item_pick()
 		await ctx.send("Here's a product you may enjoy: " + productURL)
 
-	"""
-	@cog_ext.cog_slash(name="recommend", description="Get a random recommendation.")
-	async def item_recommend(self, ctx: SlashContext):
-		productURL = item_pick()
-		await ctx.send("Here's a product you may enjoy: " + productURL)
-	"""
+	#@app_commands.command(name="recommend", description="Get a random recommendation.")
+	#async def item_recommend(self, interaction: discord.Interaction):
+	#	productURL = item_pick()
+	#	await ctx.send("Here's a product you may enjoy: " + productURL)
 
 	########
 	# interjectToggle: DISABLE INTERJECTIONS
