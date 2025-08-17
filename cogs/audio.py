@@ -65,9 +65,9 @@ class Audio(commands.Cog):
             video = search
         else:
             search = search.replace(" ", "+")
-            html = urllib.request.urlopen("https://www.youtube.com/results?search_query=" + search)
+            html = urllib.request.urlopen(f"https://www.youtube.com/results?search_query={search}")
             video_ids = re.findall(r"watch\?v=(\S{11})", html.read().decode())
-            video = "https://www.youtube.com/watch?v=" + video_ids[0]
+            video = f"https://www.youtube.com/watch?v={video_ids[0]}"
 
         self.queue.get(guildID).append(video)
 
@@ -145,7 +145,7 @@ class Audio(commands.Cog):
             with yt_dlp.YoutubeDL(YTDL_OPTIONS) as ytdlp:
                 info = ytdlp.extract_info(video, download = False)
                 title = info.get('title', None)
-                queueString += "[" + str(i) + "] " + title + "\n"
+                queueString += f"[{str(i)}] {title} \n"
 
         p_embed = discord.Embed(title = "Video Queue", description = queueString, color = 0x00ff00)
         await ctx.channel.send(embed=p_embed)
