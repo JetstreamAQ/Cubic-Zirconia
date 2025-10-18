@@ -11,11 +11,11 @@ echo =======================================
 echo Checking for updates for pip and yt-dlp
 echo =======================================
 
-pip3 install --upgrade pip
+python3 -m pip install --upgrade pip
 
 echo =======================================
 
-pip3 install --upgrade -r requirements.txt
+python3 -m pip install --upgrade -r requirements.txt
 
 echo =======================================
 echo Update/Check Complete...
