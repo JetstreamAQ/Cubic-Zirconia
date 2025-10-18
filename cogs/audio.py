@@ -77,7 +77,7 @@ class Audio(commands.Cog):
 
         with yt_dlp.YoutubeDL(YTDL_OPTIONS) as ytdlp:
             info = ytdlp.extract_info(link, download = False)
-            url = info['formats'][3]['url']
+            url = info['url']
             source = await discord.FFmpegOpusAudio.from_probe(url, **FFMPEG_OPTIONS)
             vc.play(source, after = lambda e: asyncio.run(self.play_next(ctx)))
 

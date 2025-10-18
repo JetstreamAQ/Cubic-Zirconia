@@ -7,7 +7,7 @@ from core.pagination import PaginatedView
 from discord.ext import commands, tasks
 from discord.interactions import Interaction
 from discord import Embed
-from datetime import datetime 
+from datetime import datetime
 
 ########
 # Writing to JSON
@@ -26,6 +26,9 @@ def write_file(data, data2):
 ###                                                            ###
 ##################################################################
 ##################################################################
+
+# TODO: Thinking a bulk of the logic here would be better in an API of sorts... maybe...
+
 class Stocks(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
@@ -93,6 +96,7 @@ class Stocks(commands.Cog):
         deltaPrices = self.settings.get("stockChanges")
         saleData = self.settings.get("stockSales")
         volatiles = set(self.settings.get("volatiles"))
+        server_list = self.userData.get('playerData').keys()
         for itemType in currentPrices:
             for item in currentPrices.get(itemType):
                 #create data entry for new stock if it hasn't been bought yet
@@ -115,18 +119,51 @@ class Stocks(commands.Cog):
                     totalBonus = demandBonus + negativeBonus
                     weightMod = 40 if (50 + totalBonus > 90) else -40 if (50 - totalBonus < 10) else totalBonus
 
+                #determining whether the price increases or decreases
                 changeDir = 1 if (roll <= (50 + weightMod)) else -1
                 oldPrices.get(itemType)[item] = currentPrices.get(itemType).get(item)
                 priceDelta = float(changeDir) * random.uniform(deltaLowerLimit, deltaUpperLimit)
                 newPrice = currentPrices.get(itemType).get(item) + priceDelta
+
+                #stock splitting if price is above 1000
+                # TODO: some marker in data that a split occured?
+                if newPrice >= 1000.00:
+                    split_type = float(random.randint(2,5))
+                    newPrice /= split_type
+                    for server in server_list:
+                        self.set_server_owned_stocks(server, item, split_type)
+
+                #updating the current price
                 currentPrices.get(itemType)[item] = newPrice if newPrice >= -500.00 else -500.00
+
+                #calculating differences & resetting the recorded sale count
                 deltaPrices.get(itemType)[item] = currentPrices.get(itemType).get(item) - oldPrices.get(itemType).get(item)
                 saleData.get(itemType)[item] = 0
 
                 #saves the last time stock data was edited
                 self.settings["lastCheck"] = str(datetime.now())
                 write_file(self.settings, self.userData)
-    
+
+    ########
+    # for a given server, update the investment counts of a target item for all users
+    ########
+    def set_server_owned_stocks(self, server_id, target_item, multiplier=1.0, value=0.0):
+        player_data = self.userData.get('playerData').get(server_id)
+
+        for player in player_data:
+            commodities, stocks = player_data.get(player).get('investedCommodities'), player_data.get(player).get('investedStocks')
+            if target_item in commodities:
+                current_count = commodities.get(target_item)
+                new_count = value + (int(current_count) * multiplier)
+                commodities[target_item] = round(new_count)
+            elif target_item in stocks:
+                current_count = stocks.get(target_item)
+                new_count = value + (int(current_count) * multiplier)
+                stocks[target_item] = round(new_count)
+
+        # TODO: actual logging
+        print(f"[INFO]: updated count for {target_item} in {server_id}")
+
     ########
     # checking if the server/player exists in the current database
     ########
@@ -152,7 +189,6 @@ class Stocks(commands.Cog):
     ########
     # invest: Make an investment
     ########
-    #still looks like AIDS
     async def p_check(self, ctx, item, investType, total, num):
         portfolio = self.userData.get("playerData").get(str(ctx.guild.id)).get(str(ctx.author.id))          
         author = ctx.message.author.mention
@@ -369,21 +405,6 @@ class Stocks(commands.Cog):
         embeds = [c_embed, s_embed]
         view = PaginatedView(embeds)
         view.message = await ctx.channel.send(embed=view.initial, view=view)
-
-    ########
-    # stockRequests: Fetch the list of requests for this quarter
-    ########
-    @commands.command(name="stockRequests", description="Fetch the current list of requests", aliases=['sr', 'Sr', 'sR', 'SR'])
-    async def get_requests(self, ctx):
-        companyList = list(self.settings.get("stockData").get("stocks"))
-        commodityList = list(self.settings.get("stockData").get("commodities"))
-        for company in companyList:
-            if self.settings.get("stockData").get("stocks").get(company) > 0:
-                companyList.remove(company)
-
-        chosenCompanies = random.sample(companyList, 8)
-        print(chosenCompanies)
-        print(commodityList)
 
 async def setup(bot):
     await bot.add_cog(Stocks(bot))

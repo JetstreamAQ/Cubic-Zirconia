@@ -25,7 +25,6 @@ def item_pick():
     except ValueError:
         print("[WARNING] JSON file missing.  Is a manual scrape in progress?")
     
-    #dataType = random.randint(0, (len(data) - 1)) #picking a web domain
     chosenData = random.choice(data[0]) #picking a random location within said web domain
     #some page scrapes return empty "url" definitions
     while not chosenData.get("url"):
@@ -110,32 +109,12 @@ class Recommend(commands.Cog):
             }
             write_file(self.settings)
 
-        #self.auto_crawl.start() #initiate auto_crawl background task
-
         print("[DEBUG] Recommendation Cog loaded")
-
-    ########
-    # BACKGROUND EVENT: RUN THE SPIDER EVERY MONTH FROM THE LAST CRAWL
-    ########
-    @tasks.loop(minutes=60.0)
-    async def auto_crawl(self):
-        #Check elapsed time from last scrape in master server
-        masterServer = os.getenv('MASTER_SERVER_ID')
-        oldTime = self.settings.get("recommend").get("lastScrape").get(masterServer)
-        oldStrp = datetime.strptime(oldTime, "%Y-%m-%d %H:%M:%S.%f")
-        timeDelta = (datetime.now() - oldStrp).days
-        if (timeDelta < 30): #30 days
-            return
-
-        self.settings.get("recommend").get("lastScrape")[masterServer] = str(datetime.now())
-        write_file(self.settings)
-        print("[SYSTEM] Month since last scrape.  Initiating Re-Scrape.")
-        os.system('scraper/runSpider.sh')
 
     ########
     # initiateCrawl: FORCE THE BOT TO RUN THE SPIDER
     ########
-    @commands.command(name="initiateCrawl", description="Forces a crawl for updated product listings.", aliases=['ic'], hidden=True)
+    @commands.command(name="initiateCrawl", description="Force a crawl fetch new URLs", aliases=['ic'], hidden=True)
     async def force_crawl(self, ctx):
         if await check_owner(ctx) == 1:
             return
@@ -175,7 +154,7 @@ class Recommend(commands.Cog):
         new_server(self.settings, str(ctx.message.guild.id))        
 
         productURL = item_pick()
-        await ctx.send("Here's a product you may enjoy: " + productURL)
+        await ctx.send(f"Here's a product you may enjoy: {productURL}")
 
     #@app_commands.command(name="recommend", description="Get a random recommendation.")
     #async def item_recommend(self, interaction: discord.Interaction):
@@ -208,14 +187,6 @@ class Recommend(commands.Cog):
         guildID = str(message.guild.id)
 
         new_server(self.settings, guildID)
-
-        """
-        if guildID not in messageDict.get("currentCount"):
-            print("[DEBUG]: New server, adding it to settings file.");
-            messageDict.get('maxMessage')[guildID] = 9
-            messageDict.get('currentCount')[guildID] = 0
-            messageDict.get('lastScrape')[guildID] = str(datetime.now())
-        """
 
         currentCount = messageDict.get("currentCount").get(guildID)
         curCountMut = messageDict.get("currentCount")
