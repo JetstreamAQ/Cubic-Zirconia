@@ -106,24 +106,18 @@ class Stocks(commands.Cog):
                     #new difference
                     deltaPrices.get(itemType)[item] = 0
 
-                #new price
+                # Determining the new price + setup for determining the direction of the change
+                delta_lower_limit, delta_upper_limit = 0.0, 32.0
                 roll = random.randint(0, 100)
-                weightMod = 0
-                deltaLowerLimit, deltaUpperLimit = 0.0, 32.0
+                threshold = random.randint(0, 100)
                 if item in volatiles:
-                    weightMod = -30 if (saleData.get(itemType).get(item) / 1000 < 10) else -10
-                    deltaLowerLimit, deltaUpperLimit = 25.0, 1500.0 if (roll > 50 + weightMod) else 3000.0
-                else:
-                    demandBonus = saleData.get(itemType).get(item) / 1000
-                    negativeBonus = 0 if (currentPrices.get(itemType).get(item) >= 0) else 10
-                    totalBonus = demandBonus + negativeBonus
-                    weightMod = 40 if (50 + totalBonus > 90) else -40 if (50 - totalBonus < 10) else totalBonus
+                    delta_lower_limit, delta_upper_limit = 50.0, 200.0 if (roll > 50 + weightMod) else 100.0
 
-                #determining whether the price increases or decreases
-                changeDir = 1 if (roll <= (50 + weightMod)) else -1
+                # Determining the direction of the change
+                change_dir = 1 if (roll <= threshold) else -1
                 oldPrices.get(itemType)[item] = currentPrices.get(itemType).get(item)
-                priceDelta = float(changeDir) * random.uniform(deltaLowerLimit, deltaUpperLimit)
-                newPrice = currentPrices.get(itemType).get(item) + priceDelta
+                price_delta = float(change_dir) * random.uniform(delta_lower_limit, delta_upper_limit)
+                new_price = currentPrices.get(itemType).get(item) + price_delta
 
                 #stock splitting if price is above 1000
                 # TODO: some marker in data that a split occured?
@@ -134,7 +128,7 @@ class Stocks(commands.Cog):
                         self.set_server_owned_stocks(server, item, split_type)
 
                 #updating the current price
-                currentPrices.get(itemType)[item] = newPrice if newPrice >= -500.00 else -500.00
+                currentPrices.get(itemType)[item] = new_price if new_price >= 0.00 else 0.00
 
                 #calculating differences & resetting the recorded sale count
                 deltaPrices.get(itemType)[item] = currentPrices.get(itemType).get(item) - oldPrices.get(itemType).get(item)
