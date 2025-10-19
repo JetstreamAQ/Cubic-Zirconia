@@ -329,6 +329,22 @@ class Stocks(commands.Cog):
         write_file(self.settings, self.userData)
 
     ########
+    # brankrupt: For when the player has no assets
+    ########
+    @commands.command(name="bankrupt", description="Print some money if you have no assets :)", aliases=['b', 'B'])
+    async def bankrupt(self, ctx):
+        self.db_check(ctx)
+
+        portfolio = self.userData.get('playerData').get(str(ctx.guild.id)).get(str(ctx.author.id))
+        if portfolio.get('investedCommodities') or portfolio.get("investedStocks"):
+            await ctx.send(f"{ctx.message.author.mention}: you still have some assets in your portfolio.")
+            return
+
+        portfolio['money'] += 1000.00
+        await ctx.send(f"{ctx.message.author.mention}: $1000.00 has been deposited into your account.")
+        write_file(self.settings, self.userData)
+
+    ########
     # portfolio: Grab the portfolio of the requester
     ########
     @commands.command(name="portfolio", description="Request your investment portfolio", aliases=['p', 'P'])
