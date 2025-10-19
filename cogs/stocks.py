@@ -111,7 +111,7 @@ class Stocks(commands.Cog):
                 roll = random.randint(0, 100)
                 threshold = random.randint(0, 100)
                 if item in volatiles:
-                    delta_lower_limit, delta_upper_limit = 50.0, 200.0 if (roll > 50 + weightMod) else 100.0
+                    delta_lower_limit, delta_upper_limit = 50.0, 200.0 if (roll > threshold) else 100.0
 
                 # Determining the direction of the change
                 change_dir = 1 if (roll <= threshold) else -1
@@ -334,6 +334,11 @@ class Stocks(commands.Cog):
     @commands.command(name="bankrupt", description="Print some money if you have no assets :)", aliases=['b', 'B'])
     async def bankrupt(self, ctx):
         self.db_check(ctx)
+
+        player_money = portfolio.get('money')
+        if player_money > 0.0:
+            await ctx.send(f"{ctx.message.author.mention}: you still have {player_money} left.")
+            return
 
         portfolio = self.userData.get('playerData').get(str(ctx.guild.id)).get(str(ctx.author.id))
         if portfolio.get('investedCommodities') or portfolio.get("investedStocks"):
