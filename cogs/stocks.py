@@ -335,12 +335,12 @@ class Stocks(commands.Cog):
     async def bankrupt(self, ctx):
         self.db_check(ctx)
 
+        portfolio = self.userData.get('playerData').get(str(ctx.guild.id)).get(str(ctx.author.id))
         player_money = portfolio.get('money')
         if player_money > 0.0:
-            await ctx.send(f"{ctx.message.author.mention}: you still have {player_money} left.")
+            await ctx.send(f"{ctx.message.author.mention}: you still have ${player_money} left.")
             return
 
-        portfolio = self.userData.get('playerData').get(str(ctx.guild.id)).get(str(ctx.author.id))
         if portfolio.get('investedCommodities') or portfolio.get("investedStocks"):
             await ctx.send(f"{ctx.message.author.mention}: you still have some assets in your portfolio.")
             return
@@ -416,11 +416,11 @@ class Stocks(commands.Cog):
 
         #embed for commodities
         c_embed = discord.Embed(title="Commodities (Price per unit)", description=c_listings, color=0xff0000)
-        c_embed.set_image(url="https://media.tenor.com/AbkJkB1pGr8AAAAi/hutao-money-rain.gif")
+        c_embed.set_image(url="https://media.tenor.com/images/d8ac4e749942f31ddfb928dee86244d3/tenor.gif")
 
         #embed for stocks
         s_embed = discord.Embed(title="Stocks (Price per share)", description=s_listings, color=0x0000ff)
-        s_embed.set_image(url="https://media.tenor.com/images/d8ac4e749942f31ddfb928dee86244d3/tenor.gif")
+        s_embed.set_image(url="https://c.tenor.com/R5xdZRysv0QAAAAC/tenor.gif")
 
         embeds = [c_embed, s_embed]
         view = PaginatedView(embeds)
