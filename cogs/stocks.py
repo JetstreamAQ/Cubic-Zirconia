@@ -119,22 +119,27 @@ class Stocks(commands.Cog):
                 price_delta = float(change_dir) * random.uniform(delta_lower_limit, delta_upper_limit)
                 new_price = currentPrices.get(itemType).get(item) + price_delta
 
-                #stock splitting if price is above 1000
+                # Stock splitting if price is above 1000
                 # TODO: some marker in data that a split occured?
-                if newPrice >= 1000.00:
+                if new_price >= 1000.00:
                     split_type = float(random.randint(2,5))
-                    newPrice /= split_type
+                    new_price /= split_type
                     for server in server_list:
                         self.set_server_owned_stocks(server, item, split_type)
 
-                #updating the current price
-                currentPrices.get(itemType)[item] = new_price if new_price >= 0.00 else 0.00
+                # Updating the current price
+                currentPrices.get(itemType)[item] = new_price if new_price > 0.00 else 0.00
 
-                #calculating differences & resetting the recorded sale count
+                # Delete all owned stocks on a server if the new price is now 0
+                if new_price == 0:
+                    for server in server_list:
+                        self.set_server_owned_stocks(server, item, 0)
+
+                # Calculating differences & resetting the recorded sale count
                 deltaPrices.get(itemType)[item] = currentPrices.get(itemType).get(item) - oldPrices.get(itemType).get(item)
                 saleData.get(itemType)[item] = 0
 
-                #saves the last time stock data was edited
+                # Saves the last time stock data was edited
                 self.settings["lastCheck"] = str(datetime.now())
                 write_file(self.settings, self.userData)
 
